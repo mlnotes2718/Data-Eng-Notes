@@ -1,4 +1,4 @@
-# meltano Cheatsheet
+# meltano Cheatsheet (update Dec 2025)
 
 ## Setting up meltano Projects
 Use the following command:
@@ -12,29 +12,44 @@ Example:
 
 
 ## meltano Connection
-- meltano is a pipleline that connect between different database resource.
+- meltano is a pipeline that connect between different data resource.
 - It can be different database, or between a file and a database. Irregardless, they are called data resource.
 - A data resource can be a source or destination.
-- In meltano, we named source as **extractor** and we use `tap` as the prefix.
-- For destination, we named it as **loader** and we use `target` as the prefix.
+- In meltano, for source, we use `tap` as the prefix.
+- For destination, we use `target` as the prefix.
 - The rest is just setting up the configuration.
 - meltano can be very difficult or very easy. It depends on your data source and its connectors.
 - Some data source requires very complex settings, some are very easy such as duckDB.
 
-## Creating Extractor (Data Source)
-- We use the command `meltano add extractor tap-<SOURCE_NAME>` where the source name can be any data source. Please search the meltano website for all the available connectors.
+## Creating Data Source (tap)
+- We use the command `meltano add tap-<SOURCE_NAME>` where the source name can be any data source. Please search the meltano website for all the available connectors.
 - All data source are prefix `tap`. A datasource such as postgres can be source and destination.
 - Listed are some possible data source: [`tap-github`, `tap-csv`, `tap-duckdb`, `tap-postgres`]
 - Next we need to configure the data source using the command shown below:
 ```zsh
-meltano config tap-<SOURCE_NAME> set --interactive
+meltano config set tap-<SOURCE_NAME> --interactive
 ```
 - An interactive menu will be shown and you can choose which option to set.
 - Alternatively, we can also use command line as shown below
 ```zsh
-meltano config tap-<SOURCE_NAME> set <SETTINGS> [value]
+meltano config set tap-<SOURCE_NAME> <SETTINGS> [value]
 ```
+- Use the following to list all configuration
+```zsh
+meltano config list tap-<SOURCE_NAME>
+```
+
+- Once the setup has been done, for data source it provide a testing tool. Most extractor got the testing tool. You need to search the web for the respective connector to confirm. The command of the test is usually in the format below:
+```zsh
+meltano config test tap-<SOURCE_NAME>
+```
+
 - In addition, meltano also allows data selection using the command `select`.
+- Use the following command to list down all data items that we can pick:
+```zsh
+meltano select tap-<SOURCE_NAME> --list --all
+```
+
 ```zsh
 meltano select <plugin> <entity> <attribute>
 ```
@@ -44,23 +59,28 @@ meltano select tap-github releases tag_name
 meltano select tap-github releases body
 meltano select tap-github releases published_at
 ```
-- Once the setup has been done, for some connectors it provide a testing tool. Most extractor got the testing tool. You need to search the web for the respective connector to confirm. The command of the test is usually in the format below:
+
+- Use the following command to list down all data items that we had selected:
 ```zsh
-meltano config tap-<SOURCE_NAME> test
+meltano select tap-<SOURCE_NAME> --list
 ```
 
-## Creating Loader (Data Destination)
-- We use the command `meltano add loader target-<TARGET_NAME>` where the target name can be any data source. Please search the meltano website for all the available connectors.
+## Creating Data Destination (target)
+- We use the command `meltano add target-<TARGET_NAME>` where the target name can be any data source. Please search the meltano website for all the available connectors.
 - All data destination are prefix `target`. A datasource such as postgres can be source and destination.
 - Listed are some possible data source: [`target-bigquery`, `target-postgres`, `target-jsonl`]
 - Next we need to configure the data destination using the command shown below:
 ```zsh
-meltano config target-<TARGET_NAME> set --interactive
+meltano config set target-<TARGET_NAME> --interactive
 ```
 - An interactive menu will be shown and you can choose which option to set.
 - Alternatively, we can also use command line as shown below
 ```zsh
-meltano config target-<TARGET_NAME> set <SETTINGS> [value]
+meltano config set target-<TARGET_NAME> <SETTINGS> [value]
+```
+- Use the following to list all configuration
+```zsh
+meltano config list tap-<TARGET_NAME>
 ```
 
 ## Running Meltano Pipeline
@@ -84,25 +104,43 @@ Some examples:
 
 Add extractor:
 ```zsh
-meltano add extractor tap-github
+meltano add tap-github
 ```
 
 Set configuration:
 ```zsh
-meltano config tap-github set --interactive
+meltano config set tap-github --interactive
 ```
 
 Essential settings:
 - auth_token=token provided by Github
 - repositories=repository
 
-Data Selection:
-We can also use 
+
+Set individual settings:
 ```zsh
-meltano tap-github set --interactive
+meltano config set tap-github repositories ["pandas-dev/pandas"]
 ```
 
 Show all configurations:
+```zsh
+meltano config list tap-github
+```
+
+Test configuration
+```zsh
+meltano config test tap-github
+```
+
+**Data Selection (Only for Data Source)**:
+
+We can list all available data item to be extracted
+```zsh
+# List all available data item
+meltano select tap-github --list --all
+```
+
+Select data items:
 ```zsh
 meltano select tap-github <entity> <attribute>
 #####
@@ -112,9 +150,10 @@ meltano select tap-github releases published_at
 ```
 
 
-Test configuration
+List selected data
 ```zsh
-meltano config tap-github test
+# List selected data item
+meltano select tap-github --list
 ```
 
 Reference:
@@ -123,12 +162,12 @@ Reference:
 ### tap-duckdb
 Add extractor:
 ```zsh
-meltano add extractor tap-duckdb
+meltano add tap-duckdb
 ```
 
 Set configuration:
 ```zsh
-meltano config tap-duckdb set --interactive
+meltano config set tap-duckdb --interactive
 ```
 
 Essential settings:
@@ -137,26 +176,27 @@ Essential settings:
 
 Show all configurations:
 ```zsh
-meltano config tap-duckdb list
+meltano config list tap-duckdb
 ```
 
 Test configuration
 ```zsh
-meltano config tap-duckdb test
+meltano config test tap-duckdb
 ```
 
 Reference:
 - https://hub.meltano.com/extractors/tap-duckdb
 
+
 ### tap-postgres
 Add extractor:
 ```zsh
-meltano add extractor tap-postgres
+meltano add tap-postgres
 ```
 
 Set configuration:
 ```zsh
-meltano config tap-postgres set --interactive
+meltano config set tap-postgres --interactive
 ```
 
 Essential settings:
@@ -171,12 +211,12 @@ Essential settings:
 
 Show all configurations:
 ```zsh
-meltano config tap-postgres list
+meltano config list tap-postgres
 ```
 
 Test configuration
 ```zsh
-meltano config tap-postgres test
+meltano config test tap-postgres
 ```
 
 Reference:
@@ -189,13 +229,13 @@ Reference:
 ### target-jsonl
 Add loader:
 ```zsh
-meltano add loader target-jsonl
+meltano add target-jsonl
 ```
 Note: There are many variants for jsonl
 
 Set configuration:
 ```zsh
-meltano config target-jsonl set --interactive
+meltano config set target-jsonl --interactive
 ```
 
 Essential settings:
@@ -203,7 +243,7 @@ Essential settings:
 
 Show all configurations:
 ```zsh
-meltano config target-jsonl list
+meltano config list target-jsonl
 ```
 
 Reference:
@@ -213,13 +253,13 @@ Reference:
 ### target-bigquery
 Add loader:
 ```zsh
-meltano add loader target-bigquery
+meltano add target-bigquery
 ```
 Note: There are many variants for jsonl
 
 Set configuration:
 ```zsh
-meltano config target-bigquery set --interactive
+meltano config set target-bigquery --interactive
 ```
 
 Essential settings:
@@ -233,7 +273,7 @@ Essential settings:
 
 Show all configurations:
 ```zsh
-meltano config target-bigquery list
+meltano config list target-bigquery
 ```
 
 Reference:
